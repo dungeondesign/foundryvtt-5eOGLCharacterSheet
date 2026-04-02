@@ -3,7 +3,7 @@ import { registerSettings } from './module/settings.js';
 import { preloadTemplates } from './module/preloadTemplates.js';
 import { MODULE_ID, MySettings } from './constants.js';
 //@ts-ignore
-import ActorSheet5eCharacter from '../../systems/dnd5e/module/actor/sheets/character.js';
+const { ActorSheet5eCharacter } = dnd5e.applications.actor;
 Handlebars.registerHelper('ogl5e-sheet-path', (relativePath) => {
     return `modules/${MODULE_ID}/${relativePath}`;
 });
