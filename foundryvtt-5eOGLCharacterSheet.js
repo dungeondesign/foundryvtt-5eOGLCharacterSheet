@@ -213,16 +213,17 @@ export class OGL5eCharacterSheet extends ActorSheet5eCharacter {
 /* ------------------------------------ */
 Hooks.once('init', async function () {
     log(true, `Initializing ${MODULE_ID}`);
-    // Register custom module settings
+
     registerSettings();
-    // Preload Handlebars templates
     await preloadTemplates();
-});
-// Register OGL5eCharacterSheet Sheet
-Actors.registerSheet('dnd5e', OGL5eCharacterSheet, {
-    label: 'OGL Character Sheet',
-    types: ['character'],
-    makeDefault: false,
+
+    console.log("🔥 Registering OGL Sheet 🔥");
+
+    Actors.registerSheet('dnd5e', OGL5eCharacterSheet, {
+        label: 'OGL Character Sheet',
+        types: ['character'],
+        makeDefault: false,
+
 });
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
     registerPackageDebugFlag(MODULE_ID);
