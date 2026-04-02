@@ -70,14 +70,14 @@
 		]
 	},
 	"compatibility": {
-	"minimum": "10",
-	"verified": "13"
+	"minimum": 10,
+	"verified": 13
 	},
 	"bugs": "https://github.com/ElfFriend-DnD/foundryvtt-5eOGLCharacterSheet/issues",
 	"changelog": "https://github.com/ElfFriend-DnD/foundryvtt-5eOGLCharacterSheet/releases",
 	"download": "https://github.com/dungeondesign/foundryvtt-5eOGLCharacterSheet/archive/refs/heads/master.zip",
 	"manifest": "https://raw.githubusercontent.com/dungeondesign/foundryvtt-5eOGLCharacterSheet/master/module.json",
-	"url": "https://github.com/dungeondesign/foundryvtt-5eOGLCharacterSheet"
+	"url": "https://github.com/dungeondesign/foundryvtt-5eOGLCharacterSheet",
 	"flags": {
 		"allowBugReporter": true
 	},
