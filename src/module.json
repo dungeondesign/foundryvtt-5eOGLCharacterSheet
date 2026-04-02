@@ -22,8 +22,8 @@
 			"manifest": "https://github.com/ElfFriend-DnD/foundryvtt-dnd5eCharacterActions/releases/latest/download/module.json"
 		}
 	],
-	"esmodules": [
-	  "src/foundryvtt-5eOGLCharacterSheet.js"
+"esmodules": [
+  "foundryvtt-5eOGLCharacterSheet.js"
 	],
 	"styles": [
 		"foundryvtt-5eOGLCharacterSheet.css"
