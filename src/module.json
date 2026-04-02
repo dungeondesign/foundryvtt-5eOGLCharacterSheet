@@ -23,7 +23,7 @@
 		}
 	],
 	"esmodules": [
-		"foundryvtt-5eOGLCharacterSheet.js"
+	  "src/foundryvtt-5eOGLCharacterSheet.js"
 	],
 	"styles": [
 		"foundryvtt-5eOGLCharacterSheet.css"
