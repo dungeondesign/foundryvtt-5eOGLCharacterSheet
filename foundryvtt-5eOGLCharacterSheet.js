@@ -1,230 +1,43 @@
-import { log } from "./helpers.js";
-import { registerSettings } from './module/settings.js';
-import { preloadTemplates } from './module/preloadTemplates.js';
-import { MODULE_ID, MySettings } from './constants.js';
-//@ts-ignore
-const { ActorSheet5eCharacter } = dnd5e.applications.actor;
-Handlebars.registerHelper('ogl5e-sheet-path', (relativePath) => {
-    return `modules/${MODULE_ID}/${relativePath}`;
-});
-Handlebars.registerHelper('ogl5e-sheet-safeVal', (value, fallback) => {
-    return new Handlebars.SafeString(value || fallback);
-});
-Handlebars.registerHelper('ogl5e-sheet-add', (value, toAdd) => {
-    return new Handlebars.SafeString(String(value + toAdd));
-});
-Handlebars.registerHelper('ogl5e-sheet-isEmpty', (input) => {
-    if (!input) {
-        return true;
-    }
-    if (input instanceof Array) {
-        return input.length < 1;
-    }
-    if (input instanceof Set) {
-        return input.size < 1;
-    }
-    return isObjectEmpty(input);
-});
-export class OGL5eCharacterSheet extends ActorSheet5eCharacter {
-    get template() {
-        //@ts-ignore
-        if (!game.user.isGM && this.actor.limited && !game.settings.get(MODULE_ID, MySettings.expandedLimited)) {
-            return `modules/${MODULE_ID}/templates/character-sheet-ltd.hbs`;
-        }
-        return `modules/${MODULE_ID}/templates/character-sheet.hbs`;
-    }
-    static get defaultOptions() {
-        const options = super.defaultOptions;
-        mergeObject(options, {
-            classes: ['dnd5e', 'sheet', 'actor', 'character', 'ogl5e-sheet'],
-            height: 680,
-            width: 830,
-        });
-        return options;
-    }
-    /**
-     * Inject character actions list before listeners are activated
-     * @override
-     */
-    async _renderInner(...args) {
-        var _a;
-        const html = await super._renderInner(...args);
-        const actionsListApi = (_a = game.modules.get('character-actions-list-5e')) === null || _a === void 0 ? void 0 : _a.api;
-        try {
-            const actionsTab = html.find('.actions');
-            //@ts-ignore
-            const actionsTabHtml = $(await (actionsListApi === null || actionsListApi === void 0 ? void 0 : actionsListApi.renderActionsList(this.actor)));
-            actionsTab.html(actionsTabHtml);
-        }
-        catch (e) {
-            log(true, e);
-        }
-        return html;
-    }
-    /**
-     * Handle rolling an Ability check, either a test or a saving throw
-     * @param {Event} event   The originating click event
-     * @private
-     */
-    _onRollAbilitySave(event) {
-        var _a, _b;
-        event.preventDefault();
-        let ability = (_b = (_a = event.currentTarget.closest('[data-ability]')) === null || _a === void 0 ? void 0 : _a.dataset) === null || _b === void 0 ? void 0 : _b.ability;
-        //@ts-ignore
-        this.actor.rollAbilitySave(ability, { event: event }); // FIXME TS
-    }
-    /**
-     * Change the quantity of an Owned Item within the Actor
-     * @param {Event} event   The triggering click event
-     * @private
-     */
-    async _onQuantityChange(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        const itemId = event.currentTarget.closest('.item').dataset.itemId;
-        // @ts-ignore
-        const item = this.actor.items.get(itemId);
-        const quantity = parseInt(event.target.value);
-        event.target.value = quantity;
-        return item.update({ 'data.quantity': quantity });
-    }
-    /**
-     * Activate event listeners using the prepared sheet HTML
-     * @param html {HTML}   The prepared HTML object ready to be rendered into the DOM
-     */
-    async activateListeners(html) {
-        super.activateListeners(html);
-        //@ts-ignore
-        if (!this.options.editable)
-            return; // FIXME TS
-        // Saving Throws
-        html.find('.saving-throw-name').click(this._onRollAbilitySave.bind(this));
-        // Item Quantity
-        html
-            .find('.item-quantity input')
-            .click((ev) => ev.target.select())
-            .change(this._onQuantityChange.bind(this));
-    }
-    getData() {
-        var _a;
-        const sheetData = super.getData();
-        // replace classLabels with Subclass + Class list
-        try {
-            let items = sheetData.items;
-            let classList;
-            //@ts-ignore
-            if (!foundry.utils.isNewerVersion('1.6.0', game.system.data.version)) {
-                classList = sheetData.features[1].items.map((item) => item.name);
-            }
-            else {
-                classList = items
-                    .filter((item) => item.type === 'class')
-                    .map((item) => {
-                    return `${item.data.subclass} ${item.name} ${item.data.levels}`;
-                });
-            }
-            sheetData.classLabels = classList.join(', ');
-        }
-        catch (e) {
-            log(true, 'error trying to parse class list', e);
-        }
-        // add abbreviated spell activation labels
-        try {
-            // MUTATES sheetData
-            sheetData === null || sheetData === void 0 ? void 0 : sheetData.spellbook.forEach(({ spells }) => {
-                spells.forEach((spell) => {
-                    const newActivationLabel = spell.labels.activation
-                        .split(' ')
-                        .map((string, index) => {
-                        // ASSUMPTION: First "part" of the split string is the number
-                        if (index === 0) {
-                            return string;
-                        }
-                        // ASSUMPTION: Everything after that we can safely abbreviate to be just the first character
-                        return string.substr(0, 1);
-                    })
-                        .join(' ');
-                    spell.labels.activationAbbrev = newActivationLabel;
-                });
-            });
-        }
-        catch (e) {
-            log(true, 'error trying to modify activation labels', e);
-        }
-        // add abbreviated feature activation labels
-        try {
-            let activeFeaturesIndex = sheetData.features.findIndex(({ label }) => label.includes('Active'));
-            // MUTATES sheetData
-            sheetData.features[activeFeaturesIndex].items.forEach((item) => {
-                const newActivationLabel = item.labels.activation
-                    .split(' ')
-                    .map((string, index) => {
-                    // ASSUMPTION: First "part" of the split string is the number
-                    if (index === 0) {
-                        return string;
-                    }
-                    // ASSUMPTION: Everything after that we can safely abbreviate to be just the first character
-                    return string.substr(0, 1);
-                })
-                    .join(' ');
-                item.labels.activationAbbrev = newActivationLabel;
-            });
-        }
-        catch (e) {
-            log(true, 'error trying to modify activation labels', e);
-        }
-        // if description is populated and appearance isn't use description as appearance
-        try {
-            log(false, sheetData);
-            if (!!((_a = sheetData.data.details.description) === null || _a === void 0 ? void 0 : _a.value) && !sheetData.data.details.appearance) {
-                sheetData.data.details.appearance = sheetData.data.details.description.value;
-            }
-        }
-        catch (e) {
-            log(true, 'error trying to migrate description to appearance', e);
-        }
-        // Settings
-        sheetData.settingsShowInventoryIcons = game.settings.get(MODULE_ID, MySettings.showIconsOnInventoryList);
-        sheetData.settingsShowEquipInventory = game.settings.get(MODULE_ID, MySettings.showEquipOnInventoryList);
-        // system features
-        const systemVersion = game.system.data.version;
-        //@ts-ignore
-        sheetData.systemFeatures = {
-            //@ts-ignore
-            skillConfig: !foundry.utils.isNewerVersion('1.5.0', systemVersion),
-            //@ts-ignore
-            attributeConfig: !foundry.utils.isNewerVersion('1.5.0', systemVersion),
-            //@ts-ignore
-            profLabel: !foundry.utils.isNewerVersion('1.5.0', systemVersion),
-            //@ts-ignore
-            currencyLabel: !foundry.utils.isNewerVersion('1.5.0', systemVersion),
-            //@ts-ignore
-            componentLabels: !foundry.utils.isNewerVersion('1.6.0', systemVersion),
-            //@ts-ignore
-            levelDropdown: !foundry.utils.isNewerVersion('1.6.0', systemVersion),
-            //@ts-ignore
-            subclasses: !foundry.utils.isNewerVersion('1.6.0', systemVersion),
-        };
-        return sheetData;
-    }
+const MODULE_ID = "5e-ogl-character-sheet";
+
+// Get modern dnd5e base sheet safely
+function getBaseSheet() {
+  return game.dnd5e?.applications?.actor?.ActorSheet5eCharacter;
 }
-/* ------------------------------------ */
-/* Initialize module					*/
-/* ------------------------------------ */
-Hooks.once('ready', async function () {
-    log(true, `Initializing ${MODULE_ID}`);
 
-    registerSettings();
-    await preloadTemplates();
+// Minimal working sheet
+class OGL5eCharacterSheet extends (getBaseSheet() || ActorSheet) {
 
-    console.log("🔥 Registering OGL Sheet 🔥");
-
-    Actors.registerSheet('dnd5e', OGL5eCharacterSheet, {
-        label: 'OGL Character Sheet',
-        types: ['character'],
-        makeDefault: false,
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      classes: ["dnd5e", "sheet", "actor", "character", "ogl-sheet"],
+      width: 800,
+      height: 800
     });
-});
-Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
-    registerPackageDebugFlag(MODULE_ID);
+  }
+
+  get template() {
+    // TEMP: use default sheet template so it renders
+    return "systems/dnd5e/templates/actors/character-sheet.html";
+  }
+}
+
+// Register AFTER everything is ready
+Hooks.once("ready", function () {
+  console.log("🔥 OGL Sheet (Safe Mode) Registering 🔥");
+
+  const BaseSheet = getBaseSheet();
+
+  if (!BaseSheet) {
+    console.error("❌ Could not find dnd5e base sheet");
+    return;
+  }
+
+  Actors.registerSheet("dnd5e", OGL5eCharacterSheet, {
+    types: ["character"],
+    makeDefault: false,
+    label: "OGL Character Sheet"
+  });
+
+  console.log("✅ OGL Sheet Registered");
 });
