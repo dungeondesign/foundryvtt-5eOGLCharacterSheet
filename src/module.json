@@ -69,10 +69,9 @@
 			}
 		]
 	},
-	"compatibility":{
-		"minimum": 10,
-		"verified": 10,
-		"maximum": 10
+	"compatibility": {
+	"minimum": "10",
+	"verified": "13"
 	},
 	"bugs": "https://github.com/ElfFriend-DnD/foundryvtt-5eOGLCharacterSheet/issues",
 	"changelog": "https://github.com/ElfFriend-DnD/foundryvtt-5eOGLCharacterSheet/releases",
