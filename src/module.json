@@ -3,7 +3,7 @@
 	"name": "5e-ogl-character-sheet",
 	"title": "D&D 5e OGL Character Sheet",
 	"description": "A character sheet resembling a classic Pencil and Paper or Roll20 sheet.",
-	"system": ["dnd5e"],
+	"systems": ["dnd5e"],
 	"version": "0.14.1",
 	"author": "Andrew Krigline (akrigline)",
 	"authors": [
@@ -81,5 +81,5 @@
 	"flags": {
 		"allowBugReporter": true
 	},
-	"manifestPlusVersion": "1.0.0"
+	
 }
