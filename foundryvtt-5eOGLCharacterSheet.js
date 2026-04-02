@@ -223,7 +223,7 @@ Hooks.once('init', async function () {
         label: 'OGL Character Sheet',
         types: ['character'],
         makeDefault: false,
-
+    });
 });
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
     registerPackageDebugFlag(MODULE_ID);
