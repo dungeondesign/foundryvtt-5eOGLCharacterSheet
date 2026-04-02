@@ -211,7 +211,7 @@ export class OGL5eCharacterSheet extends ActorSheet5eCharacter {
 /* ------------------------------------ */
 /* Initialize module					*/
 /* ------------------------------------ */
-Hooks.once('init', async function () {
+Hooks.once('ready', async function () {
     log(true, `Initializing ${MODULE_ID}`);
 
     registerSettings();
